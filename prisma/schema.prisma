@@ -12,8 +12,16 @@ datasource db {
   provider = "postgresql"
 }
 
-model studets {
-  email String @id
-  name String
-  city String
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  phone String? @unique  // "?" aniwarya nehe kiyana eka 
+  fristName String 
+  LastName String
+  password String
+  role String @default("CUSTOMER")
+  status String @default("ACTIVE") // ACTIVE, BANNED, SUSPENDED
+  createdAt DateTime @default(now())
+  lastLogin DateTime?
+  privileges String[] @default([])
 }
