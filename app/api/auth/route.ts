@@ -2,7 +2,7 @@
 import prisma from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-
+import * as jose from "jose";
 
 export async function POST(request : NextRequest) {
     
@@ -44,11 +44,40 @@ export async function POST(request : NextRequest) {
 
     if(isPasswordValid){
 
-        return NextResponse.json(
-            {
-                massege : "Login sucsusfull"
-            }
-        )
+            //const secretText = "TemporySecret123456789"
+            const secretText = process.env.JOSE_SECRET || "TemporySecret123456789"
+
+            const secret = new TextEncoder().encode(secretText)
+
+            const token = await new jose.SignJWT(
+                {
+                    email :user.email,
+                    fristName : user.fristName,
+                    lastName : user.LastName,
+                    role : user.role,
+                    prvilages : user.privileges
+                }
+            ).setProtectedHeader({alg : "HS256"}).sign(secret)
+         
+            const response = NextResponse.json(
+                {
+                    message : "login successfull",
+                    role : user.role,
+                }
+            )
+
+            response.cookies.set(
+                {
+                    name : "login-token",
+                    value : token,
+                    httpOnly : true,
+                    secure : false,  //http nam false, https nam true
+                    sameSite : "lax",
+                    maxAge : 60 * 60 * 24 * 7 //7 days
+                }
+            )
+            return response
+    
     }else{
         return NextResponse.json(
             {
