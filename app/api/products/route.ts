@@ -1,19 +1,26 @@
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import * as jose from "jose";
-
-export async function GET(request : NextRequest){
-
-    const loginToken = request.cookies.get("login-token")?.value
-   
-    const secretText = process.env.JOSE_SECRET
-
-    const secret = new TextEncoder().encode(secretText)
+import { isPrivilaged } from "@/utils/authentication";
 
 
-    const user = await jose.jwtVerify(
-        loginToken,
-        secret
-    )
-    console.log(user)
+export async function POST(request : NextRequest){
+
+    const hasPrivilege = await isPrivilaged(request, "products:add");
+
+    if(hasPrivilege){
+        
+        const body = await request.json();
+
+
+    }else{
+        return NextResponse.json(
+            {
+                message: "You do not have the required privilege to perform this action."
+            },
+            {
+                status: 403
+            }
+        )
+
 }
